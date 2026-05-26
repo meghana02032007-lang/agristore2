@@ -1,0 +1,1548 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#2D7A3A;--green-light:#E8F5E9;--green-mid:#4CAF50;--green-dark:#1B5E20;
+    --amber:#F57F17;--amber-light:#FFF8E1;--amber-mid:#FFC107;
+    --blue:#1565C0;--blue-light:#E3F2FD;
+    --bg:#F9FBF7;--white:#FFFFFF;--text:#1A2E1B;--muted:#5C7A5E;--border:#C8E6C9;
+    --radius:14px;--shadow:0 2px 12px rgba(45,122,58,0.1);
+    --font:'Nunito',sans-serif;
+  }
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+  .screen{display:none;min-height:100vh;flex-direction:column}
+  .screen.active{display:flex}
+  
+  /* NAV */
+  .nav{background:var(--white);border-bottom:1.5px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .logo{display:flex;align-items:center;gap:8px;font-family:'Poppins',sans-serif;font-weight:700;font-size:20px;color:var(--green-dark)}
+  .logo-icon{width:34px;height:34px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+  .nav-right{display:flex;align-items:center;gap:10px}
+  .lang-btn{background:var(--green-light);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--green-dark);cursor:pointer}
+  .back-btn{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:var(--font)}
+
+  /* BUTTONS */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 22px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;border:none;font-family:var(--font);transition:all 0.2s}
+  .btn-primary{background:var(--green);color:#fff}
+  .btn-primary:hover{background:var(--green-dark)}
+  .btn-secondary{background:var(--white);color:var(--green);border:2px solid var(--green)}
+  .btn-secondary:hover{background:var(--green-light)}
+  .btn-amber{background:var(--amber);color:#fff}
+  .btn-amber:hover{background:#E65100}
+  .btn-full{width:100%}
+  .btn-lg{padding:14px 28px;font-size:16px;border-radius:12px}
+  .btn-sm{padding:7px 14px;font-size:13px;border-radius:8px}
+  .btn-danger{background:#C62828;color:#fff}
+
+  /* CARDS */
+  .card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:18px;box-shadow:var(--shadow)}
+
+  /* FORM */
+  .form-group{margin-bottom:14px}
+  .form-label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.4px}
+  .form-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:15px;font-family:var(--font);color:var(--text);background:var(--white);outline:none;transition:border-color 0.2s}
+  .form-input:focus{border-color:var(--green)}
+  select.form-input{cursor:pointer}
+
+  /* BADGE */
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+  .badge-green{background:#E8F5E9;color:#2D7A3A}
+  .badge-amber{background:#FFF8E1;color:#E65100}
+  .badge-red{background:#FFEBEE;color:#C62828}
+  .badge-blue{background:#E3F2FD;color:#1565C0}
+
+  /* TABS */
+  .tab-bar{display:flex;background:var(--green-light);border-radius:10px;padding:3px}
+  .tab{flex:1;padding:9px;text-align:center;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);transition:all 0.2s}
+  .tab.active{background:var(--white);color:var(--green-dark);box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+
+  /* CONTENT */
+  .content{padding:18px;flex:1;max-width:680px;width:100%;margin:0 auto;}
+  .section-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}
+  .section-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+  .divider{height:1px;background:var(--border);margin:14px 0}
+
+  /* WAREHOUSE CARD */
+  .wh-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:15px;margin-bottom:12px;cursor:pointer;transition:0.3s ease}
+  .wh-card:hover{box-shadow:0 4px 20px rgba(45,122,58,0.15)}
+  .wh-card:hover{transform:translateY(-5px);box-shadow:0 12px 30px rgba(0,0,0,0.12);}
+  .wh-card:hover img{transform:scale(1.03);}
+  .wh-name{font-size:16px;font-weight:800;color:var(--text)}
+  .wh-loc{font-size:13px;color:var(--muted);margin:2px 0 8px}
+  .wh-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .wh-stat{background:var(--green-light);border-radius:8px;padding:7px;text-align:center}
+  .wh-stat-val{font-size:15px;font-weight:800;color:var(--green-dark)}
+  .wh-stat-lbl{font-size:11px;color:var(--muted);font-weight:600}
+
+  /* BOOKING */
+  .booking-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:15px;margin-bottom:10px}
+  .booking-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+  .booking-name{font-size:15px;font-weight:700}
+  .booking-meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .booking-actions{display:flex;gap:8px;margin-top:10px}
+
+  /* STEPS */
+  .step-indicator{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:20px}
+  .step-dot{width:10px;height:10px;border-radius:50%;background:var(--border)}
+  .step-dot.active{background:var(--green);width:24px;border-radius:5px}
+  .step-dot.done{background:var(--green-mid)}
+
+  /* ALERT */
+  .alert{border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:14px}
+  .alert-success{background:#E8F5E9;color:#2D7A3A;border:1px solid #A5D6A7}
+  .alert-info{background:#E3F2FD;color:#1565C0;border:1px solid #90CAF9}
+
+  /* MODAL OVERLAY */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:none;align-items:center;justify-content:center;padding:16px}
+  .modal-overlay.open{display:flex}
+  .modal-box{background:var(--white);border-radius:var(--radius);padding:22px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto}
+  .modal-title{font-size:18px;font-weight:800;margin-bottom:4px}
+  .modal-sub{font-size:13px;color:var(--muted);margin-bottom:16px}
+
+  /* BOTTOM NAV */
+  .bottom-nav{background:var(--white);border-top:1.5px solid var(--border);display:grid;padding:6px 0 8px;position:sticky;bottom:0}
+  .bottom-nav.farmer-nav{grid-template-columns:repeat(4,1fr)}
+  .bottom-nav.owner-nav{grid-template-columns:repeat(3,1fr)}
+  .bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 0;border:none;background:none;font-family:var(--font)}
+  .bnav-icon{font-size:20px}
+  .bnav-label{font-size:10px;font-weight:700;color:var(--muted)}
+  .bnav-item.active .bnav-label{color:var(--green)}
+  .bnav-item.active .bnav-icon{filter:saturate(2)}
+
+  /* PROGRESS BAR */
+  .progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:4px}
+  .progress-fill{height:100%;background:var(--green-mid);border-radius:4px;transition:width 0.3s}
+
+  /* PAYMENT */
+  .pay-option{border:2px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:12px;transition:border-color 0.2s}
+  .pay-option.selected{border-color:var(--green);background:var(--green-light)}
+  .pay-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+
+  .row{display:flex;gap:10px}
+  .row>.form-group{flex:1}
+  .spacer{flex:1}
+  .text-center{text-align:center}
+  .mt-1{margin-top:8px}
+  .mt-2{margin-top:14px}
+  .mb-1{margin-bottom:8px}
+  .tag{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;background:var(--amber-light);color:var(--amber)}
+  @media (max-width: 768px) {
+
+  .content{
+    padding:12px;
+    max-width:100%;
+    }
+
+  .wh-stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .wh-card{
+    padding:14px;
+    border-radius:16px;
+  }
+
+  .wh-card img{
+    height:140px !important;
+  }
+
+  .btn{
+    padding:10px 14px;
+    font-size:13px;
+  }
+
+  #map{
+    height:220px !important;
+  }
+
+  .modal-box{
+    width:95%;
+    max-width:95%;
+    padding:18px;
+  }
+
+  .owner-stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .screen{
+    padding-bottom:80px;
+  }
+
+}
+</style>
+
+
+
+<!-- LANDING SCREEN -->
+<div id="screen-landing" class="screen active">
+  <div class="nav">
+    <div class="logo"><div class="logo-icon">🌾</div>AgriStore</div>
+    <div class="nav-right">
+      <button class="lang-btn" onclick="openLang()">🌐 EN</button>
+    </div>
+  </div>
+  <div class="content" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding-top:30px">
+    <div style="font-size:64px;margin-bottom:16px">🌾</div>
+    <h1 data-i18n="welcome" style="font-family:'Poppins',sans-serif;font-size:28px;font-weight:700;color:var(--green-dark);line-height:1.2;margin-bottom:8px">
+      Welcome to<br>AgriStore
+    </h1>
+    <p data-i18n="subtitle" style="color:var(--muted);font-size:15px;max-width:300px;margin-bottom:32px;line-height:1.6">
+       Connect farmers directly with warehouse owners. Store your harvest safely.
+    </p>
+    
+    <p data-i18n="iam" style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px">
+     I am a...
+    </p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:340px">
+      <div class="card" style="cursor:pointer;text-align:center;border:2px solid var(--border);padding:22px 14px" onclick="selectRole('farmer')">
+        <div style="font-size:40px;margin-bottom:10px">👨‍🌾</div>
+        <div data-i18n="farmer" style="font-size:16px;font-weight:800;color:var(--green-dark)">Farmer</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Find & book warehouses</div>
+      </div>
+      <div class="card" style="cursor:pointer;text-align:center;border:2px solid var(--border);padding:22px 14px" onclick="selectRole('owner')">
+        <div style="font-size:40px;margin-bottom:10px">🏭</div>
+        <div data-i18n="owner" style="font-size:16px;font-weight:800;color:var(--green-dark)">Warehouse Owner</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Manage your warehouse</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div id="screen-auth" class="screen">
+  <div class="nav">
+    <div class="logo"><div class="logo-icon">🌾</div>AgriStore</div>
+    <div class="nav-right">
+      <button class="back-btn" onclick="goTo('landing')">← Back</button>
+      <button class="lang-btn" onclick="openLang()">🌐 EN</button>
+    </div>
+  </div>
+  <div class="content">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:44px" id="auth-icon">👨‍🌾</div>
+      <h2 style="font-size:20px;font-weight:800;margin-top:8px" id="auth-title">Farmer Login</h2>
+    </div>
+    <div class="tab-bar" style="margin-bottom:20px">
+      <div class="tab active" id="tab-login" onclick="switchAuthTab('login')">Login</div>
+      <div class="tab" id="tab-register" onclick="switchAuthTab('register')">Register</div>
+    </div>
+    <div id="form-login">
+      <div class="form-group">
+        <label data-i18n="mobile" class="form-label">Mobile Number</label>
+        <input class="form-input" type="tel" placeholder="Enter your mobile number">
+      </div>
+      <div class="form-group">
+        <label data-i18n="password" class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="Enter password">
+      </div>
+      <button data-i18n="login" class="btn btn-primary btn-full btn-lg mt-2" onclick="doLogin()">Login →</button>
+      <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:12px">Forgot password? <span style="color:var(--green);cursor:pointer;font-weight:700">Reset</span></p>
+    </div>
+    <div id="form-register" style="display:none">
+  
+      <div class="row">
+        <div class="form-group">
+         <label data-i18n="firstName" class="form-label">First Name</label>
+         <input class="form-input" placeholder="First name">
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="lastName" class="form-label">Last Name</label>
+          <input class="form-input" placeholder="Last name">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label data-i18n="mobile" class="form-label">Mobile Number</label>
+        <input class="form-input" type="tel" placeholder="+91 XXXXX XXXXX">
+      </div>
+
+      <div class="form-group">
+         <label data-i18n="stateDistrict" class="form-label">State / District</label>
+         <input class="form-input" placeholder="e.g. Tamil Nadu, Vellore">
+      </div>
+
+      <div class="form-group">
+          <label data-i18n="password" class="form-label">Password</label>
+          <input class="form-input" type="password" placeholder="Create password">
+      </div>
+
+      <button data-i18n="createAccount" class="btn btn-primary btn-full btn-lg mt-2" onclick="doRegister()">
+          Create Account →</button>
+      </div>
+    </div>
+</div>
+
+<!-- FARMER HOME -->
+<div id="screen-farmer-home" class="screen">
+  <div class="nav">
+    <div class="logo"><div class="logo-icon">🌾</div>AgriStore</div>
+    <div class="nav-right">
+      <button class="lang-btn" onclick="openLang()">🌐 EN</button>
+      <span style="font-size:13px;color:var(--muted)">Ramu 👨‍🌾</span>
+    </div>
+  </div>
+  <div class="content" id="farmer-tab-content">
+    <!-- Search tab -->
+    <div id="ftab-search">
+      <div class="alert alert-info" style="display:flex;align-items:center;gap:8px">
+        <span>📍</span> 
+        <span id="location-text">Location detected: <strong>Click detect location</strong></span>
+        <button class="btn btn-secondary btn-sm" onclick="getGPSLocation()">📍 Detect</button>
+        <span style="color:var(--blue);font-size:12px;cursor:pointer;font-weight:700;margin-left:auto">Change</span>
+      </div>
+      <div style="position:relative;margin-bottom:12px">
+        <input
+           class="form-input"
+           placeholder="🔍 Search warehouses..."
+           style="padding-left:16px"
+           id="warehouse-search"
+           onkeyup="filterWarehouses()"
+        >
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px">
+        <span class="tag" style="white-space:nowrap;cursor:pointer;background:var(--green);color:#fff">All</span>
+        <span class="tag" style="white-space:nowrap;cursor:pointer">🌾 Rice</span>
+        <span class="tag" style="white-space:nowrap;cursor:pointer">🌽 Maize</span>
+        <span class="tag" style="white-space:nowrap;cursor:pointer">🫘 Pulses</span>
+        <span class="tag" style="white-space:nowrap;cursor:pointer">🧅 Onion</span>
+      </div>
+      <div class="section-title">Nearby Warehouses</div>
+      <div class="section-sub" style="margin-bottom:12px">3 warehouses within 15 km</div>
+      <div id="map"
+      style="
+        height:300px;
+        border-radius:14px;
+        margin-bottom:15px;
+      ">
+      </div>
+      <div id="warehouse-list"></div>
+    </div>
+
+    <!-- Bookings tab -->
+    <div id="ftab-bookings" style="display:none">
+      <div class="section-title">My Bookings</div>
+      <div class="section-sub">Track all your storage bookings</div>
+
+      <div class="booking-card">
+        <div class="booking-header">
+          <div>
+            <div class="booking-name">Krishna Storage Pvt Ltd</div>
+            <div class="booking-meta">📍 Ranipet &nbsp;|&nbsp; 🌾 Rice &nbsp;|&nbsp; 25 tons</div>
+            <div class="booking-meta" style="margin-top:2px">📅 Jun 1 – Jun 30, 2025 (30 days)</div>
+          </div>
+          <span class="badge badge-green">Confirmed</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px">
+          <span>Day 12 / 30</span><span>₹1,35,000 paid</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm">📍 Track</button>
+          <button class="btn btn-sm" style="background:var(--amber-light);color:var(--amber);border:none">🚛 Transport: Booked</button>
+        </div>
+      </div>
+
+      <div class="booking-card">
+        <div class="booking-header">
+          <div>
+            <div class="booking-name">Murugan Cold Storage</div>
+            <div class="booking-meta">📍 Vellore &nbsp;|&nbsp; 🧅 Onion &nbsp;|&nbsp; 10 tons</div>
+            <div class="booking-meta" style="margin-top:2px">📅 Jul 5 – Jul 25, 2025 (20 days)</div>
+          </div>
+          <span class="badge badge-amber">Pending</span>
+        </div>
+        <div class="booking-meta" style="color:var(--amber)">⏳ Waiting for owner approval</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-sm btn-danger" style="background:#FFEBEE;color:#C62828">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile tab -->
+    <div id="ftab-profile" style="display:none">
+      <div class="card" style="text-align:center;padding:24px;margin-bottom:14px">
+        <div style="width:68px;height:68px;border-radius:50%;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 10px">👨‍🌾</div>
+        <div id="farmer-profile-name" style="font-size:18px;font-weight:800">Loading...</div>
+        <div id="farmer-profile-info" style="color:var(--muted);font-size:13px">Loading...</div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px">Edit Profile</button>
+      </div>
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-weight:700;margin-bottom:10px">Language / மொழி</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <button class="btn btn-primary btn-sm">English</button>
+          <button class="btn btn-secondary btn-sm">தமிழ்</button>
+          <button class="btn btn-secondary btn-sm">हिंदी</button>
+          <button class="btn btn-secondary btn-sm">తెలుగు</button>
+          <button class="btn btn-secondary btn-sm">ಕನ್ನಡ</button>
+          <button class="btn btn-secondary btn-sm">മലയാളം</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <button class="btn btn-secondary" style="justify-content:flex-start;border:none;padding:10px 0">📞 Help & Support</button>
+          <div class="divider" style="margin:4px 0"></div>
+          <button class="btn btn-secondary" style="justify-content:flex-start;border:none;padding:10px 0">❓ How to use</button>
+          <div class="divider" style="margin:4px 0"></div>
+          <button class="btn btn-secondary" style="justify-content:flex-start;border:none;padding:10px 0;color:#C62828" onclick="goTo('landing')">🚪 Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav farmer-nav">
+    <button class="bnav-item active" id="fnav-search" onclick="switchFarmerTab('search')"><span class="bnav-icon">🔍</span><span data-i18n="search" class="bnav-label">Search</span></button>
+    <button class="bnav-item" id="fnav-bookings" onclick="switchFarmerTab('bookings')"><span class="bnav-icon">📋</span><span data-i18n="bookings" class="bnav-label">Bookings</span></button>
+    <button class="bnav-item" id="fnav-pay" onclick="openPaymentHistory()"><span class="bnav-icon">💳</span><span data-i18n="payments" class="bnav-label">Payments</span></button>
+    <button class="bnav-item" id="fnav-profile" onclick="switchFarmerTab('profile')"><span class="bnav-icon">👤</span><span data-i18n="profile" class="bnav-label">Profile</span></button>
+  </div>
+</div>
+
+<!-- WAREHOUSE DETAIL MODAL -->
+<div class="modal-overlay" id="modal-wh-detail">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div class="modal-title" id="wh-detail-name">Krishna Storage Pvt Ltd</div>
+      <button onclick="closeModal('modal-wh-detail')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div class="modal-sub">📍 Ranipet, Tamil Nadu &nbsp;|&nbsp; 4.2 km away</div>
+    <div class="wh-stats" style="margin-bottom:14px">
+      <div class="wh-stat"><div class="wh-stat-val">₹180</div><div class="wh-stat-lbl">/ ton / day</div></div>
+      <div class="wh-stat"><div class="wh-stat-val">450T</div><div class="wh-stat-lbl">available</div></div>
+      <div class="wh-stat"><div class="wh-stat-val">1000T</div><div class="wh-stat-lbl">total</div></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:55%"></div></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">55% capacity used</div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px">Accepted Crops</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+      <span class="tag">🌾 Rice</span><span class="tag">🌽 Maize</span><span class="tag">🫘 Pulses</span><span class="tag">🌿 Soybean</span>
+    </div>
+    <div class="alert alert-success" style="margin-bottom:14px">✓ Transport available &nbsp;|&nbsp; 🌡 Temperature controlled</div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px">Contact</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:16px">📞 +91 94440 00123 &nbsp;&nbsp; Rajan (Manager)</div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="startBooking()">📦 Book This Warehouse</button>
+  </div>
+</div>
+
+<!-- BOOKING FLOW MODAL -->
+<div class="modal-overlay" id="modal-booking">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="modal-title">Book Warehouse</div>
+      <button onclick="closeModal('modal-booking')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div class="step-indicator" id="booking-steps">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+
+    <!-- Step 1 -->
+    <div id="booking-step-1">
+      <div style="font-size:15px;font-weight:700;margin-bottom:12px">📦 Storage Details</div>
+      <div class="form-group">
+        <label class="form-label">Type of Crop</label>
+        <select class="form-input" id="crop-select" onchange="showRecommendation()">
+          <option>🌾 Rice</option><option>🌽 Maize</option><option>🫘 Pulses</option><option>🌿 Soybean</option><option>🧅 Onion</option>
+        </select>
+        <p id="crop-recommendation"
+          style="font-size:12px;color:var(--green-dark);margin-top:6px">
+        </p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quantity (in tons)</label>
+        <input class="form-input" type="number" placeholder="e.g. 25" id="booking-qty">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Storage Start Date</label>
+        <input class="form-input" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Number of Days</label>
+        <input class="form-input" type="number" placeholder="e.g. 30" id="booking-days" oninput="calcCost()">
+      </div>
+      <div class="alert alert-info" id="cost-preview" style="display:none">
+        💰 Estimated cost: <strong id="cost-val">₹0</strong>
+      </div>
+      <button class="btn btn-primary btn-full mt-2" onclick="bookingNext(2)">Next: Transport →</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="booking-step-2" style="display:none">
+      <div style="font-size:15px;font-weight:700;margin-bottom:12px">🚛 Transport (Optional)</div>
+      <div class="pay-option" id="trans-yes" onclick="selectTransport(true)">
+        <div class="pay-icon" style="background:#E8F5E9">🚛</div>
+        <div><div style="font-weight:700">Yes, I need transport</div><div style="font-size:12px;color:var(--muted)">We'll arrange pickup from your farm</div></div>
+      </div>
+      <div class="pay-option selected" id="trans-no" onclick="selectTransport(false)">
+        <div class="pay-icon" style="background:#F5F5F5">🚶</div>
+        <div><div style="font-weight:700">No, I'll manage myself</div><div style="font-size:12px;color:var(--muted)">Drop the harvest yourself</div></div>
+      </div>
+      <div id="transport-fields" style="display:none">
+        <div class="form-group"><label class="form-label">Pickup Address</label><input class="form-input" placeholder="Your farm address"></div>
+        <div class="form-group"><label class="form-label">Vehicle Type</label>
+          <select class="form-input"><option>Small Truck (3T)</option><option>Medium Truck (8T)</option><option>Large Truck (15T)</option></select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px">
+        <button class="btn btn-secondary" onclick="bookingBack(1)" style="flex:1">← Back</button>
+        <button class="btn btn-primary" onclick="bookingNext(3)" style="flex:2">Next: Payment →</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="booking-step-3" style="display:none">
+      <div style="font-size:15px;font-weight:700;margin-bottom:12px">💳 Payment Method</div>
+      <div class="pay-option selected" id="pay-online" onclick="selectPay('online')">
+        <div class="pay-icon" style="background:#E3F2FD">📱</div>
+        <div><div style="font-weight:700">Online Payment</div><div style="font-size:12px;color:var(--muted)">UPI, Net banking, Card</div></div>
+      </div>
+      <div class="pay-option" id="pay-offline" onclick="selectPay('offline')">
+        <div class="pay-icon" style="background:#FFF8E1">💵</div>
+        <div><div style="font-weight:700">Pay at Warehouse</div><div style="font-size:12px;color:var(--muted)">Cash or cheque on arrival</div></div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="color:var(--muted)">Storage cost</span><span>₹1,35,000</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px"><span style="color:var(--muted)">GST (5%)</span><span>₹6,750</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;margin-bottom:14px"><span>Total</span><span style="color:var(--green-dark)">₹1,41,750</span></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="bookingBack(2)" style="flex:1">← Back</button>
+        <button class="btn btn-primary" onclick="bookWarehouse()" style="flex:2">✅ Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OWNER HOME -->
+<div id="screen-owner-home" class="screen">
+  <div class="nav">
+    <div class="logo"><div class="logo-icon">🌾</div>AgriStore</div>
+    <div class="nav-right">
+      <button class="lang-btn" onclick="openLang()">🌐 EN</button>
+      <span style="font-size:13px;color:var(--muted)">Rajan 🏭</span>
+    </div>
+  </div>
+  <div class="content" id="owner-tab-content">
+    
+    <!-- Owner Dashboard -->
+    <div id="otab-dashboard">
+      <div class="section-title">My Warehouse</div>
+      <div class="section-sub">Krishna Storage Pvt Ltd</div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="background:var(--green-light);border-radius:12px;padding:14px;text-align:center">
+          <div id="owner-available" style="font-size:24px;font-weight:800;color:var(--green-dark)">0T</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:600">Available</div>
+        </div>
+        <div style="background:var(--amber-light);border-radius:12px;padding:14px;text-align:center">
+          <div id="owner-occupied" style="font-size:24px;font-weight:800;color:var(--amber)">0T</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:600">Occupied</div>
+        </div>
+        <div style="background:#E3F2FD;border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:800;color:var(--blue)">3</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:600">Pending Requests</div>
+        </div>
+        <div style="background:#E8F5E9;border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:800;color:var(--green-dark)">₹2.4L</div>
+          <div style="font-size:12px;color:var(--muted);font-weight:600">This Month</div>
+        </div>
+      </div>
+
+      <div style="background:var(--white);border-radius:12px;border:1px solid var(--border);padding:14px;margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-weight:700">Total Capacity</div>
+          <div style="font-size:13px;color:var(--muted)">1000 Tons</div>
+        </div>
+        <div class="progress-bar" style="height:12px"><div class="progress-fill" style="width:55%;background:var(--amber)"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px">
+          <span id="owner-used-percent">0% used</span>
+          <span id="owner-free">0T free</span> 
+          <div style="
+              margin-top:10px;
+              padding:8px;
+              border-radius:10px;
+              background:#FFF8E1;
+              color:#E65100;
+              font-size:13px;
+              font-weight:700;
+          ">
+           ⚠ Warehouse status: Space available, monitor capacity regularly
+        </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="openUpdateCapacity()">⚙️ Update Warehouse Details</button>
+    </div>
+
+    <!-- Owner Bookings -->
+    <div id="otab-bookings" style="display:none">
+      <div class="section-title">Booking Requests</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <span class="badge badge-amber" style="cursor:pointer;padding:6px 12px">Pending (3)</span>
+        <span class="badge badge-green" style="cursor:pointer;padding:6px 12px">Accepted (8)</span>
+      </div>
+      
+      <div class="booking-card">
+        <div class="booking-header">
+          <div>
+            <div class="booking-name">Ramu Krishnan</div>
+            <div class="booking-meta">🌾 Rice &nbsp;|&nbsp; 25 tons &nbsp;|&nbsp; 30 days</div>
+            <div class="booking-meta">📅 Jun 1 – Jun 30, 2025</div>
+            <div class="booking-meta" style="margin-top:2px;color:var(--green-dark);font-weight:700">💰 ₹1,41,750 (Online)</div>
+          </div>
+          <span class="badge badge-amber">Pending</span>
+        </div>
+        <div class="booking-actions">
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="acceptBooking(this)">✅ Accept</button>
+          <button class="btn btn-danger btn-sm" style="flex:1;background:#FFEBEE;color:#C62828" onclick="rejectBooking(this)">✗ Reject</button>
+        </div>
+      </div>
+
+      <div class="booking-card">
+        <div class="booking-header">
+          <div>
+            <div class="booking-name">Senthil Kumar</div>
+            <div class="booking-meta">🌽 Maize &nbsp;|&nbsp; 40 tons &nbsp;|&nbsp; 15 days</div>
+            <div class="booking-meta">📅 Jun 5 – Jun 20, 2025</div>
+            <div class="booking-meta" style="margin-top:2px;color:var(--amber);font-weight:700">💵 ₹1,09,200 (Offline)</div>
+          </div>
+          <span class="badge badge-amber">Pending</span>
+        </div>
+        <div class="booking-actions">
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="acceptBooking(this)">✅ Accept</button>
+          <button class="btn btn-danger btn-sm" style="flex:1;background:#FFEBEE;color:#C62828" onclick="rejectBooking(this)">✗ Reject</button>
+        </div>
+      </div>
+
+      <div class="booking-card" style="opacity:0.7">
+        <div class="booking-header">
+          <div>
+            <div class="booking-name">Anbu Selvan</div>
+            <div class="booking-meta">🫘 Pulses &nbsp;|&nbsp; 10 tons &nbsp;|&nbsp; 20 days</div>
+            <div class="booking-meta">📅 Jun 8 – Jun 28, 2025</div>
+          </div>
+          <span class="badge badge-green">Accepted</span>
+        </div>
+        <div class="booking-meta" style="color:var(--green)">✓ Confirmed on May 30, 2025</div>
+      </div>
+    </div>
+
+    <!-- Owner Profile -->
+    <div id="otab-profile" style="display:none">
+      <div class="card" style="text-align:center;padding:24px;margin-bottom:14px">
+        <div style="font-size:40px;margin-bottom:8px">🏭</div>
+        <div style="font-size:18px;font-weight:800">Rajan Murugan</div>
+        <div style="color:var(--muted);font-size:13px">Krishna Storage Pvt Ltd</div>
+        <div style="color:var(--muted);font-size:13px">📍 Ranipet, Tamil Nadu</div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:10px">Edit Profile</button>
+      </div>
+      <div class="card" style="margin-bottom:10px">
+        <div style="font-weight:700;margin-bottom:10px">Language / மொழி</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <button class="btn btn-primary btn-sm">English</button>
+          <button class="btn btn-secondary btn-sm">தமிழ்</button>
+          <button class="btn btn-secondary btn-sm">हिंदी</button>
+        </div>
+      </div>
+      <div class="card">
+        <button class="btn btn-secondary" style="justify-content:flex-start;border:none;padding:10px 0;width:100%">📞 Help & Support</button>
+        <div class="divider" style="margin:4px 0"></div>
+        <button class="btn btn-secondary" style="justify-content:flex-start;border:none;padding:10px 0;width:100%;color:#C62828" onclick="goTo('landing')">🚪 Logout</button>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav owner-nav">
+    <button class="bnav-item active" id="onav-dashboard" onclick="switchOwnerTab('dashboard')"><span class="bnav-icon">🏠</span><span class="bnav-label">Dashboard</span></button>
+    <button class="bnav-item" id="onav-bookings" onclick="switchOwnerTab('bookings')"><span class="bnav-icon">📋</span><span class="bnav-label">Requests</span></button>
+    <button class="bnav-item" id="onav-profile" onclick="switchOwnerTab('profile')"><span class="bnav-icon">👤</span><span class="bnav-label">Profile</span></button>
+  </div>
+</div>
+
+<!-- UPDATE CAPACITY MODAL -->
+<div class="modal-overlay" id="modal-update-wh">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div class="modal-title">Update Warehouse</div>
+      <button onclick="closeModal('modal-update-wh')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div class="modal-sub">Krishna Storage Pvt Ltd</div>
+    <div class="form-group"><label class="form-label">Warehouse Name</label><input class="form-input" value="Krishna Storage Pvt Ltd"></div>
+    <div class="form-group"><label class="form-label">Location / Address</label><input class="form-input" value="Ranipet, Tamil Nadu"></div>
+    <div class="row">
+      <div class="form-group"><label class="form-label">Total Capacity (T)</label><input class="form-input" type="number" value="1000"></div>
+      <div class="form-group"><label class="form-label">Available (T)</label><input class="form-input" type="number" value="450"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Price per Ton per Day (₹)</label><input class="form-input" type="number" value="180"></div>
+    <div class="form-group">
+      <label class="form-label">Accepted Crop Types</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox" checked> 🌾 Rice</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox" checked> 🌽 Maize</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox" checked> 🫘 Pulses</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox"> 🧅 Onion</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox"> 🥔 Potato</label>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full mt-2" onclick="saveWarehouse()">💾 Save Changes</button>
+  </div>
+</div>
+
+<!-- PAYMENT HISTORY MODAL -->
+<div class="modal-overlay" id="modal-payments">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title">Payment History</div>
+      <button onclick="closeModal('modal-payments')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div class="booking-card" style="margin-bottom:10px">
+      <div class="booking-header">
+        <div><div class="booking-name">Krishna Storage – Rice</div><div class="booking-meta">Jun 1, 2025 &nbsp;|&nbsp; Online (UPI)</div></div>
+        <span style="font-size:16px;font-weight:800;color:var(--green-dark)">₹1,41,750</span>
+      </div>
+      <span class="badge badge-green">Paid</span>
+    </div>
+    <div class="booking-card">
+      <div class="booking-header">
+        <div><div class="booking-name">Murugan Cold – Onion</div><div class="booking-meta">Jul 5, 2025 &nbsp;|&nbsp; Pay at Warehouse</div></div>
+        <span style="font-size:16px;font-weight:800;color:var(--amber)">₹48,000</span>
+      </div>
+      <span class="badge badge-amber">Pending</span>
+    </div>
+  </div>
+</div>
+
+<!-- LANGUAGE MODAL -->
+<div class="modal-overlay" id="modal-lang">
+  <div class="modal-box" style="max-width:320px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="modal-title">Choose Language</div>
+      <button onclick="closeModal('modal-lang')" style="background:none;border:none;font-size:20px;cursor:pointer">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn btn-primary" onclick="setLang('English')">English</button>
+      <button onclick="setLang('Tamil')">தமிழ்</button>
+      <button onclick="setLang('Hindi')">हिंदी</button>
+      <button onclick="setLang('Telugu')">తెలుగు</button>
+      <button onclick="setLang('Kannada')">ಕನ್ನಡ</button>
+      <button onclick="setLang('Malayalam')">മലയാളം</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING SUCCESS MODAL -->
+<div class="modal-overlay" id="modal-success">
+  <div class="modal-box" style="text-align:center;max-width:320px">
+    <div style="font-size:56px;margin-bottom:10px">✅</div>
+    <div style="font-size:20px;font-weight:800;color:var(--green-dark);margin-bottom:6px">Booking Sent!</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.6">Your booking request has been sent to the warehouse owner. You will be notified once they confirm.</div>
+    <div class="alert alert-success" style="margin-bottom:14px">📋 Booking ID: <strong>AGS-2025-00041</strong></div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('modal-success');switchFarmerTab('bookings')">View My Bookings</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+var currentRole='';
+var bookingStep=1;
+
+const translations = {
+  English: {
+    welcome: "Welcome to AgriStore",
+    subtitle: "Connect farmers directly with warehouse owners. Store your harvest safely.",
+    iam: "I am a...",
+    farmer: "Farmer",
+    owner: "Warehouse Owner",
+    login: "Login",
+    register: "Register",
+    createAccount: "Create Account →",
+   mobile: "Mobile Number",
+  password: "Password",
+  firstName: "First Name",
+  lastName: "Last Name",
+  stateDistrict: "State / District",
+    search: "Search",
+    bookings: "Bookings",
+    profile: "Profile"
+  },
+
+  Tamil: {
+    welcome: "அக்ரிஸ்டோருக்கு வரவேற்கிறோம்",
+    subtitle: "விவசாயிகளை கிடங்கு உரிமையாளர்களுடன் இணைத்து, விளைச்சலை பாதுகாப்பாக சேமிக்க உதவுகிறது.",
+    iam: "நான்...",
+    farmer: "விவசாயி",
+    owner: "கிடங்கு உரிமையாளர்",
+    login: "உள்நுழை",
+    register: "பதிவு செய்",
+    createAccount: "கணக்கு உருவாக்கு →",
+    mobile: "மொபைல் எண்",
+    password: "கடவுச்சொல்",
+    firstName: "முதல் பெயர்",
+    lastName: "கடைசி பெயர்",
+    stateDistrict: "மாநிலம் / மாவட்டம்",
+    search: "தேடு",
+    bookings: "முன்பதிவுகள்",
+    profile: "சுயவிவரம்"
+  },
+
+  Hindi: {
+    welcome: "AgriStore में आपका स्वागत है",
+    subtitle: "किसानों को गोदाम मालिकों से जोड़कर फसल को सुरक्षित रखने में मदद करता है।",
+    iam: "मैं हूँ...",
+    farmer: "किसान",
+    owner: "गोदाम मालिक",
+    login: "लॉगिन",
+    register: "रजिस्टर",
+    createAccount: "खाता बनाएं →",
+    mobile: "मोबाइल नंबर",
+    password: "पासवर्ड",
+    firstName: "पहला नाम",
+    lastName: "अंतिम नाम",
+    stateDistrict: "राज्य / जिला",
+    search: "खोजें",
+    bookings: "बुकिंग",
+    profile: "प्रोफाइल"
+  },
+
+  Telugu: {
+    welcome: "AgriStore కి స్వాగతం",
+    subtitle: "రైతులను గోదాం యజమానులతో కలిపి పంటను సురక్షితంగా నిల్వ చేయడంలో సహాయపడుతుంది.",
+    iam: "నేను...",
+    farmer: "రైతు",
+    owner: "గోదాం యజమాని",
+    login: "లాగిన్",
+    register: "నమోదు",
+    createAccount: "ఖాతా సృష్టించండి →",
+    mobile: "మొబైల్ నంబర్",
+    password: "పాస్వర్డ్",
+    firstName: "మొదటి పేరు",
+    lastName: "చివరి పేరు",
+    stateDistrict: "రాష్ట్రం / జిల్లా",
+    search: "శోధన",
+    bookings: "బుకింగ్స్",
+    profile: "ప్రొఫైల్"
+  },
+
+  Kannada: {
+    welcome: "AgriStore ಗೆ ಸ್ವಾಗತ",
+    subtitle: "ರೈತರನ್ನು ಗೋದಾಮು ಮಾಲೀಕರೊಂದಿಗೆ ಸಂಪರ್ಕಿಸಿ ಬೆಳೆ ಸುರಕ್ಷಿತವಾಗಿ ಸಂಗ್ರಹಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ.",
+    iam: "ನಾನು...",
+    farmer: "ರೈತ",
+    owner: "ಗೋದಾಮು ಮಾಲೀಕ",
+    login: "ಲಾಗಿನ್",
+    register: "ನೋಂದಣಿ",
+    createAccount: "ಖಾತೆ ರಚಿಸಿ →",
+    mobile: "ಮೊಬೈಲ್ ಸಂಖ್ಯೆ",
+    password: "ಪಾಸ್ವರ್ಡ್",
+    firstName: "ಮೊದಲ ಹೆಸರು",
+    lastName: "ಕೊನೆಯ ಹೆಸರು",
+    stateDistrict: "ರಾಜ್ಯ / ಜಿಲ್ಲೆ",
+    search: "ಹುಡುಕಿ",
+    bookings: "ಬುಕಿಂಗ್‌ಗಳು",
+    profile: "ಪ್ರೊಫೈಲ್"
+  },
+
+  Malayalam: {
+    welcome: "AgriStore ലേക്ക് സ്വാഗതം",
+    subtitle: "കർഷകരെ ഗോഡൗൺ ഉടമകളുമായി ബന്ധിപ്പിച്ച് വിള സുരക്ഷിതമായി സൂക്ഷിക്കാൻ സഹായിക്കുന്നു.",
+    iam: "ഞാൻ...",
+    farmer: "കർഷകൻ",
+    owner: "ഗോദൗൺ ഉടമ",
+    login: "ലോഗിൻ",
+    register: "രജിസ്റ്റർ",
+    createAccount: "അക്കൗണ്ട് സൃഷ്ടിക്കുക →",
+    mobile: "മൊബൈൽ നമ്പർ",
+    password: "പാസ്‌വേഡ്",
+    firstName: "ആദ്യ പേര്",
+    lastName: "അവസാന പേര്",
+  stateDistrict: "സംസ്ഥാനം / ജില്ല",
+    search: "തിരയുക",
+    bookings: "ബുക്കിംഗുകൾ",
+    profile: "പ്രൊഫൈൽ"
+  }
+};
+
+function goTo(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+}
+
+function selectRole(role){
+  currentRole=role;
+  var authIcon=document.getElementById('auth-icon');
+  var authTitle=document.getElementById('auth-title');
+  if(role==='farmer'){authIcon.textContent='👨‍🌾';authTitle.textContent='Farmer Login';}
+  else{authIcon.textContent='🏭';authTitle.textContent='Warehouse Owner Login';}
+  goTo('auth');
+}
+
+function switchAuthTab(tab){
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('form-login').style.display=tab==='login'?'block':'none';
+  document.getElementById('form-register').style.display=tab==='register'?'block':'none';
+}
+
+// Supabase connection
+const supabaseClient = window.supabase.createClient(
+  "https://cjscaylpmrmwjojhswhb.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqc2NheWxwbXJtd2pvamhzd2hiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDQzMDksImV4cCI6MjA5Mjg4MDMwOX0.gj_DzCq5HVq0kvwA3SjUMxdNQtU_O01zVj76n_qxDlI"
+);
+
+async function doRegister() {
+  const firstName = document.querySelector("#form-register input[placeholder='First name']").value;
+  const lastName = document.querySelector("#form-register input[placeholder='Last name']").value;
+  const mobile = document.querySelector("#form-register input[type='tel']").value;
+  const stateDistrict = document.querySelector("#form-register input[placeholder='e.g. Tamil Nadu, Vellore']").value;
+  const password = document.querySelector("#form-register input[type='password']").value;
+
+  const email = mobile + "@agristore.com";
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email: email,
+    password: password
+  });
+
+  if (error) {
+    alert(error.message);
+  } else {
+    await supabaseClient.from("profiles").insert([
+      {
+        id: data.user.id,
+        first_name: firstName,
+        last_name: lastName,
+        mobile: mobile,
+        state_district: stateDistrict,
+        role: currentRole
+      }
+    ]);
+
+    alert("Account created ✅");
+    switchAuthTab("login");
+  }
+}
+
+async function doLogin(){
+
+  const mobile = document.querySelector("#form-login input[type='tel']").value.trim();
+  const password = document.querySelector("#form-login input[type='password']").value.trim();
+
+  if(!mobile || !password){
+    alert("Please enter mobile number and password");
+    return;
+  }
+
+  const email = mobile + "@agristore.com";
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
+  });
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  // 🔥 Get user role from database
+  const { data: profile, error: profileError } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", data.user.id)
+    .single();
+
+  if(profileError){
+    alert("Error fetching user data");
+    return;
+  }
+
+  // 🚨 Role check
+  if(profile.role !== currentRole){
+    alert("You are not registered as " + currentRole);
+    return;
+  }
+
+  // ✅ Correct role
+  alert("Login successful ✅");
+  if(currentRole==='farmer') {
+  goTo('farmer-home');
+  loadWarehouses();
+}
+else {
+  goTo('owner-home');
+  loadOwnerDashboard();
+}
+  
+}
+function switchFarmerTab(tab){
+  ['search','bookings','profile'].forEach(t=>{
+    document.getElementById('ftab-'+t).style.display=t===tab?'block':'none';
+    var nav=document.getElementById('fnav-'+t);
+    if(nav) nav.classList.toggle('active',t===tab);
+  });
+  if(tab==='pay'){document.getElementById('ftab-search').style.display='none';}
+  if(tab === "search"){
+  loadWarehouses();
+  }
+  if(tab === "bookings"){
+    loadFarmerBookings();
+  }
+  if(tab === "profile"){
+  loadUserProfile();
+  }
+}
+
+function switchOwnerTab(tab){
+  ['dashboard','bookings','profile'].forEach(t=>{
+    document.getElementById('otab-'+t).style.display=t===tab?'block':'none';
+    var nav=document.getElementById('onav-'+t);
+    if(nav) nav.classList.toggle('active',t===tab);
+  });
+  if(tab === "bookings"){
+  loadOwnerBookings();
+}
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+function openWarehouseDetail(name){
+  document.getElementById('wh-detail-name').textContent=name;
+  openModal('modal-wh-detail');
+}
+
+function startBooking(){
+  closeModal('modal-wh-detail');
+  bookingStep=1;
+  showBookingStep(1);
+  openModal('modal-booking');
+}
+
+function showBookingStep(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('booking-step-'+i).style.display=i===n?'block':'none';
+  });
+  var dots=document.querySelectorAll('#booking-steps .step-dot');
+  dots.forEach((d,i)=>{
+    d.classList.toggle('active',i===n-1);
+    d.classList.toggle('done',i<n-1);
+  });
+  bookingStep=n;
+}
+
+function bookingNext(n){showBookingStep(n);}
+function bookingBack(n){showBookingStep(n);}
+
+function calcCost(){
+  var qty=parseFloat(document.getElementById('booking-qty').value)||0;
+  var days=parseFloat(document.getElementById('booking-days').value)||0;
+  var cost=qty*days*180;
+  var el=document.getElementById('cost-preview');
+  if(cost>0){
+    el.style.display='block';
+    document.getElementById('cost-val').textContent='₹'+cost.toLocaleString('en-IN');
+  } else {el.style.display='none';}
+}
+
+function selectTransport(yes){
+  document.getElementById('trans-yes').classList.toggle('selected',yes);
+  document.getElementById('trans-no').classList.toggle('selected',!yes);
+  document.getElementById('transport-fields').style.display=yes?'block':'none';
+}
+
+function selectPay(method){
+  document.getElementById('pay-online').classList.toggle('selected',method==='online');
+  document.getElementById('pay-offline').classList.toggle('selected',method==='offline');
+}
+
+function confirmBooking(){
+  closeModal('modal-booking');
+  openModal('modal-success');
+}
+
+function acceptBooking(btn){
+  var card=btn.closest('.booking-card');
+  var badge=card.querySelector('.badge');
+  badge.className='badge badge-green';badge.textContent='Accepted';
+  card.querySelector('.booking-actions').innerHTML='<div class="booking-meta" style="color:var(--green)">✓ Confirmed</div>';
+  card.style.opacity='0.75';
+}
+
+function rejectBooking(btn){
+  var card=btn.closest('.booking-card');
+  var badge=card.querySelector('.badge');
+  badge.className='badge badge-red';badge.textContent='Rejected';
+  card.querySelector('.booking-actions').innerHTML='<div class="booking-meta" style="color:#C62828">✗ Rejected</div>';
+  card.style.opacity='0.5';
+}
+
+function openUpdateCapacity(){openModal('modal-update-wh');}
+function saveWarehouse(){
+  closeModal('modal-update-wh');
+  alert('✅ Warehouse details updated successfully!');
+}
+
+function openPaymentHistory(){openModal('modal-payments');}
+function openLang(){openModal('modal-lang');}
+
+function setLang(lang) {
+  const t = translations[lang] || translations.English;
+
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (t[key]) {
+      el.innerHTML = t[key];
+    }
+  });
+
+  document.querySelectorAll(".lang-btn").forEach(btn => {
+    btn.textContent = "🌐 " + lang;
+  });
+
+  closeModal("modal-lang");
+}
+
+async function bookWarehouse() {
+  const warehouseName = document.getElementById("wh-detail-name").textContent;
+  const cropType = document.querySelector("#booking-step-1 select").value;
+  const quantity = document.getElementById("booking-qty").value;
+  const qty = parseInt(quantity);
+  const days = document.getElementById("booking-days").value;
+
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  const { error } = await supabaseClient.from("bookings").insert([
+    {
+      farmer_id: user.id,
+      warehouse_name: warehouseName,
+      crop_type: cropType,
+      quantity: quantity,
+      days: days
+    }
+  ]);
+
+  if (error) {
+    alert("Booking failed ❌");
+  } else {
+    alert("Booking saved ✅");
+    closeModal("modal-booking");
+    openModal("modal-success");
+  }
+}
+async function loadFarmerBookings() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  const { data, error } = await supabaseClient
+    .from("bookings")
+    .select("*")
+    .eq("farmer_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    alert("Could not load bookings");
+    return;
+  }
+
+  const bookingDiv = document.getElementById("ftab-bookings");
+
+  bookingDiv.innerHTML = `
+    <div class="section-title">My Bookings</div>
+    <div class="section-sub">Track all your storage bookings</div>
+  `;
+
+  data.forEach(b => {
+    bookingDiv.innerHTML += `
+      <div class="booking-card">
+        <div class="booking-header">
+          <div>
+            <div class="booking-name">
+                ${b.warehouse_name}
+            </div>
+            <div class="booking-meta">🌾 ${b.crop_type} | ${b.quantity} tons | ${b.days} days</div>
+            <div class="booking-meta">Status: ${b.status}</div>
+          </div>
+          <div style="
+             display:inline-block;
+             padding:5px 10px;
+             border-radius:20px;
+             font-size:12px;
+             font-weight:700;
+
+             background:
+               ${b.status === 'accepted'
+               ? '#E8F5E9'
+               : b.status === 'rejected'
+               ? '#FFEBEE'
+               : '#FFF8E1'};
+
+             color:
+               ${b.status === 'accepted'
+                 ? '#2E7D32'
+                 : b.status === 'rejected'
+                 ? '#C62828'
+                 : '#F9A825'};
+          ">
+
+           ${b.status === 'accepted'
+             ? '✅ Accepted'
+             : b.status === 'rejected'
+             ? '❌ Rejected'
+             : '⏳ Pending'}
+
+          </div>
+        </div>
+      </div>
+    `;
+  });
+}
+async function loadOwnerDashboard() {
+
+  const { data, error } = await supabaseClient
+    .from("warehouses")
+    .select("*")
+    .limit(1)
+    .single();
+
+  if (error) {
+    alert("Could not load owner dashboard");
+    return;
+  }
+
+  const total = Number(data.capacity);
+  const available = Number(data.available);
+  const occupied = total - available;
+
+  const usedPercent =
+    Math.round((occupied / total) * 100);
+
+  document.getElementById("owner-available").innerText =
+    available + "T";
+
+  document.getElementById("owner-occupied").innerText =
+    occupied + "T";
+
+  document.getElementById("owner-used-percent").innerText =
+    usedPercent + "% used";
+
+  document.getElementById("owner-free").innerText =
+    available + "T free";
+}
+async function loadOwnerBookings() {
+  const { data, error } = await supabaseClient
+    .from("bookings")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    alert("Could not load owner bookings");
+    return;
+  }
+
+  const ownerDiv = document.getElementById("otab-bookings");
+
+  ownerDiv.innerHTML = `
+    <div class="section-title">Booking Requests</div>
+    <div class="section-sub">Requests from farmers</div>
+  `;
+
+  data.forEach(b => {
+    ownerDiv.innerHTML += `
+      <div class="booking-card">
+        <div class="booking-header">
+          <div>
+            <div class="booking-name">${b.warehouse_name}</div>
+            <div class="booking-meta">🌾 ${b.crop_type} | ${b.quantity} tons | ${b.days} days</div>
+            <div class="booking-meta">Status: ${b.status}</div>
+          </div>
+          <span class="badge badge-amber">${b.status}</span>
+        </div>
+
+        <div class="booking-actions">
+          <button class="btn btn-primary btn-sm" onclick="updateBookingStatus('${b.id}', 'accepted')">✅ Accept</button>
+          <button class="btn btn-danger btn-sm" onclick="updateBookingStatus('${b.id}', 'rejected')">❌ Reject</button>
+        </div>
+      </div>
+    `;
+  });
+}
+function checkSpoilageRisk(temp, humidity) {
+  if (humidity > 75){ 
+     return "High Risk";}
+  if (temp > 30){
+     return "Medium Risk";}
+  return "Safe";
+}
+function getStorageRecommendation(crop) {
+
+  crop = crop.toLowerCase();
+
+  if(crop.includes("rice") || crop.includes("wheat")){
+    return "Dry Storage Recommended";
+  }
+
+  if(crop.includes("tomato") || crop.includes("vegetable")){
+    return "Cold Storage Recommended";
+  }
+
+  if(crop.includes("onion") || crop.includes("potato")){
+    return "Ventilated Storage Recommended";
+  }
+
+  return "General Storage Recommended";
+}
+function showRecommendation(){
+
+  const crop =
+    document.getElementById("crop-select").value;
+
+  document.getElementById("crop-recommendation").innerText =
+    getStorageRecommendation(crop);
+}
+let allWarehouses = [];
+async function loadWarehouses() {
+
+  const { data, error } = await supabaseClient
+    .from("warehouses")
+    .select("*");
+
+  if (error) {
+    alert("Could not load warehouses");
+    return;
+  }
+  allWarehouses = data;
+  const map = L.map('map').setView([13.0827, 80.2707], 10);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+data.forEach(w => {
+
+  if(w.latitude && w.longitude){
+
+    L.marker([w.latitude, w.longitude])
+      .addTo(map)
+      .bindPopup(`
+        <b>${w.name}</b><br>
+        ${w.location}
+      `);
+
+  }
+
+});
+  const container = document.getElementById("warehouse-list");
+
+  container.innerHTML = "";
+
+  data.forEach(w => {
+
+    container.innerHTML += `
+      <div class="wh-card" onclick="openWarehouseDetail('${w.name}')">
+
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <img src="${w.image_url || 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff'}"
+           style="
+              width:100%;
+              height:160px;
+              object-fit:cover;
+              border-radius:16px;
+              margin-bottom:10px;
+              transition:0.3s ease;
+          ">
+          <div>
+            <div class="wh-name">${w.name}</div>
+
+            <div class="wh-loc">
+              📍 ${w.location} — ${w.distance} away
+            </div>
+
+            <p style="font-size:12px;color:var(--green-dark);margin-top:4px">
+               🏬 ${w.storage_type || "General Storage"}
+            </p>
+
+            <p style="font-size:12px;color:var(--muted)">
+              🌡 ${w.temperature || "-"}°C |
+              💧 ${w.humidity || "-"}% |
+              Risk:
+              ${checkSpoilageRisk(w.temperature, w.humidity)}
+            </p>
+          </div>
+
+          <div class="badge badge-green">
+            ✓ Available
+          </div>
+
+        </div>
+
+        <div class="wh-stats">
+
+          <div class="wh-stat">
+            <div class="wh-stat-val">₹${w.price}</div>
+            <div class="wh-stat-lbl">per ton/day</div>
+          </div>
+
+          <div class="wh-stat">
+            <div class="wh-stat-val">${w.available}T</div>
+            <div class="wh-stat-lbl">available</div>
+
+            <div style="
+              margin-top:5px;
+              font-size:10px;
+              font-weight:800;
+              padding:3px 6px;
+              border-radius:8px;
+              background:${w.available < 50 ? '#FFEBEE' : '#E8F5E9'};
+              color:${w.available < 50 ? '#C62828' : '#2D7A3A'};
+            ">
+             ${w.available < 50 ? '⚠ Almost Full' : '✓ Space'}
+          </div>
+        </div>
+          
+
+          <div class="wh-stat">
+            <div class="wh-stat-val">${w.rating} ⭐</div>
+            <div class="wh-stat-lbl">rating</div>
+          </div>
+
+          <div class="wh-stat">
+             <div class="wh-stat-val">${w.storage_type || "General"}</div>
+             <div class="wh-stat-lbl">storage</div>
+          </div>
+
+        </div>
+
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <a class="btn btn-secondary btn-sm"
+          href="tel:+${w.phone}">
+          📞 Call
+        </a>
+
+        <a class="btn btn-primary btn-sm"
+          href="https://wa.me/${w.phone}"
+          target="_blank">
+          💬 WhatsApp
+        </a>
+      </div>
+    `;
+  });
+}
+function filterWarehouses(){
+
+  const search =
+    document.getElementById("warehouse-search")
+    .value
+    .toLowerCase();
+
+  const cards =
+    document.querySelectorAll(".wh-card");
+
+  cards.forEach((card,index)=>{
+
+    const warehouse = allWarehouses[index];
+
+    const text = `
+      ${warehouse.name}
+      ${warehouse.storage_type || ""}
+      ${warehouse.suitable_crops || ""}
+    `.toLowerCase();
+
+    if(text.includes(search)){
+      card.style.display = "block";
+    } else {
+      card.style.display = "none";
+    }
+
+  });
+
+}
+async function updateBookingStatus(id, status) {
+  const { error } = await supabaseClient
+    .from("bookings")
+    .update({ status: status })
+    .eq("id", id);
+   if(status === "accepted"){
+
+  // get booking details
+  const { data: bookingData } =
+    await supabaseClient
+      .from("bookings")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+  // get warehouse
+  const { data: warehouseData } =
+    await supabaseClient
+      .from("warehouses")
+      .select("*")
+      .eq("name", bookingData.warehouse_name)
+      .single();
+
+  // reduce available tons
+  const newAvailable =
+    warehouseData.available - bookingData.quantity;
+
+  // update warehouse
+  await supabaseClient
+    .from("warehouses")
+    .update({ available:newAvailable })
+    .eq("name", bookingData.warehouse_name);
+
+}
+  if (error) {
+  alert("Status update failed ❌");
+  } else {
+  alert("Booking " + status + " ✅");
+  loadOwnerBookings();
+  loadFarmerBookings();
+  }
+}
+
+function getGPSLocation() {
+  if (!navigator.geolocation) {
+    alert("GPS not supported in this browser");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      alert("Location detected ✅\nLatitude: " + lat + "\nLongitude: " + lng);
+
+      document.getElementById("location-text").innerHTML =
+        "Location detected: <strong>Lat " + lat.toFixed(4) + ", Lng " + lng.toFixed(4) + "</strong>";
+    },
+    function() {
+      alert("Location permission denied ❌");
+    }
+  );
+}
+async function loadUserProfile() {
+  const { data: { user } } = await supabaseClient.auth.getUser();
+
+  if (!user) return;
+
+  const { data: profile, error } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (error) {
+    alert("Could not load profile");
+    return;
+  }
+
+  if (currentRole === "farmer") {
+    document.getElementById("farmer-profile-name").textContent =
+      profile.first_name + " " + profile.last_name;
+
+    document.getElementById("farmer-profile-info").textContent =
+      "+91 " + profile.mobile + " | " + profile.state_district;
+  }
+}   
+</script>
